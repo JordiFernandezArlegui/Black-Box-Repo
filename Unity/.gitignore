@@ -1,0 +1,19 @@
+# Unity generated folders
+Unity/Black Box/Library/
+Unity/Black Box/Temp/
+Unity/Black Box/Obj/
+Unity/Black Box/Build/
+Unity/Black Box/Builds/
+Unity/Black Box/Logs/
+Unity/Black Box/MemoryCaptures/
+
+# Visual Studio
+.vs/
+*.csproj
+*.sln
+*.user
+*.userprefs
+
+# OS generated files
+.DS_Store
+Thumbs.db

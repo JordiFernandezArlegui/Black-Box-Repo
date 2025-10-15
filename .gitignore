@@ -1,0 +1,58 @@
+# Ignorar la carpeta Library de Unity (muy pesada)
+Unity/Black Box/Library/
+
+# Ignorar carpetas temporales
+Unity/Black Box/Temp/
+Unity/Black Box/Obj/
+Unity/Black Box/Build/
+Unity/Black Box/Builds/
+Unity/Black Box/Logs/
+Unity/Black Box/MemoryCaptures/
+
+# Archivos de configuración y proyecto de Visual Studio y otros IDEs
+Unity/Black Box/*.csproj
+Unity/Black Box/*.sln
+Unity/Black Box/*.user
+Unity/Black Box/*.userprefs
+Unity/Black Box/*.pidb
+Unity/Black Box/*.booproj
+Unity/Black Box/*.svd
+Unity/Black Box/.vs/
+Unity/Black Box/.vscode/
+
+# Archivos generados por JetBrains Rider
+Unity/Black Box/.idea/
+
+# Carpetas de paquetes y cache
+Unity/Black Box/Library/PackageCache/
+Unity/Black Box/Library/ScriptAssemblies/
+
+# Macros temporales
+Unity/Black Box/*.log
+
+# Auto-generated VS/MD solution and project files
+Unity/Black Box/*.csproj
+Unity/Black Box/*.unityproj
+Unity/Black Box/*.sln
+Unity/Black Box/*.suo
+Unity/Black Box/*.tmp
+Unity/Black Box/*.user
+Unity/Black Box/*.userprefs
+Unity/Black Box/*.pidb
+Unity/Black Box/*.booproj
+
+# Crash reports
+Unity/Black Box/CrashReports/
+
+# Builds
+Unity/Black Box/Build/
+Unity/Black Box/Builds/
+
+# Other
+Unity/Black Box/*.apk
+Unity/Black Box/*.aab
+Unity/Black Box/*.xcodeproj
+Unity/Black Box/*.xcworkspace
+
+# Generated files by Unity
+Unity/Black Box/*.gen.cs
