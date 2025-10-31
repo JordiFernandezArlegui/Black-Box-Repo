@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Página: salto campo a campo</title>
+  <style>
+    /* Reset y base */
+    html,body{height:100%;margin:0}
+    body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;overflow:hidden;background:#f7f3ec;color:#111}
+
+    /* Cada "campo" ocupa exactamente la vista */
+    .stage{height:100vh;width:100vw;display:grid;place-items:center;scroll-snap-align:center;position:relative}
+
+    /* Contenedor principal con todos los campos apilados verticalmente */
+    #container{height:100vh;width:100vw;overflow:hidden}
+    .fields{height:100%;width:100%;display:flex;flex-direction:column;}
+
+    /* Estilo de cada pantalla/campo */
+    .field{flex:0 0 100vh;display:grid;place-items:center;padding:32px;box-sizing:border-box}
+    .card{max-width:760px;width:100%;text-align:center}
+
+    /* Inputs limpios y minimalistas */
+    input[type=text], input[type=email], textarea, select{
+      width:100%;padding:14px 16px;border:1px solid rgba(0,0,0,0.12);border-radius:10px;font-size:18px;outline:none;background:rgba(255,255,255,0.95)
+    }
+    input[type=text]:focus, input[type=email]:focus, textarea:focus, select:focus{box-shadow:0 6px 18px rgba(0,0,0,0.06);border-color:#111}
+
+    label{display:block;margin-bottom:10px;font-weight:600;text-align:left}
+    .hint{margin-top:10px;opacity:0.7;font-size:14px;text-align:left}
+
+    /* Navegación lateral de puntos */
+    .dots{position:fixed;right:18px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:50}
+    .dot{width:12px;height:12px;border-radius:999px;background:rgba(0,0,0,0.12);cursor:pointer}
+    .dot.active{background:#111;transform:scale(1.1)}
+
+    /* Botones de control */
+    .controls{position:fixed;left:18px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px}
+    button.small{border:0;padding:10px 12px;border-radius:8px;background:#111;color:#fff}
+
+    /* Transición suave de desplazamiento (visual) */
+    .fields.animating{transition:transform 420ms cubic-bezier(.2,.9,.2,1)}
+
+    /* Indicadores de accesibilidad (solo visual) */
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+    @media (max-width:600px){
+      input[type=text], input[type=email], textarea, select{font-size:16px}
+    }
+  </style>
+</head>
+<body>
+  <main id="container" aria-roledescription="aplicación" aria-label="Formulario por pasos sin scroll convencional">
+
+    <div class="fields" id="fields">
+
+      <!-- Campo 0 -->
+      <section class="field" data-index="0" tabindex="-1" aria-labelledby="q0">
+        <div class="card">
+          <h2 id="q0">Bienvenido</h2>
+          <p class="hint">Usa la rueda del ratón, las flechas arriba/abajo, o desliza para ir saltando entre campos.</p>
+          <div style="height:20px"></div>
+          <button class="small" id="startBtn">Empezar</button>
+        </div>
+      </section>
+
+      <!-- Campo 1 -->
+      <section class="field" data-index="1" tabindex="-1" aria-labelledby="q1">
+        <div class="card">
+          <label id="q1" for="name">Nombre</label>
+          <input id="name" type="text" inputmode="text" autocomplete="name" placeholder="Escribe tu nombre">
+          <p class="hint">Pulsa "Enter" para ir al siguiente campo, o usa la navegación.</p>
+        </div>
+      </section>
+
+      <!-- Campo 2 -->
+      <section class="field" data-index="2" tabindex="-1" aria-labelledby="q2">
+        <div class="card">
+          <label id="q2" for="email">Correo electrónico</label>
+          <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="usuario@ejemplo.com">
+        </div>
+      </section>
+
+      <!-- Campo 3 -->
+      <section class="field" data-index="3" tabindex="-1" aria-labelledby="q3">
+        <div class="card">
+          <label id="q3" for="topic">Asunto</label>
+          <select id="topic">
+            <option value="">Selecciona...</option>
+            <option>Consulta</option>
+            <option>Sugerencia</option>
+            <option>Otro</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Campo 4 -->
+      <section class="field" data-index="4" tabindex="-1" aria-labelledby="q4">
+        <div class="card">
+          <label id="q4" for="message">Mensaje</label>
+          <textarea id="message" rows="5" placeholder="Escribe tu mensaje" ></textarea>
+        </div>
+      </section>
+
+      <!-- Campo final -->
+      <section class="field" data-index="5" tabindex="-1" aria-labelledby="q5">
+        <div class="card">
+          <h2 id="q5">¡Listo!</h2>
+          <p class="hint">Revisa y envía cuando quieras.</p>
+          <div style="height:16px"></div>
+          <button class="small" id="send">Enviar</button>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Dots -->
+    <div class="dots" id="dots" aria-hidden="false"></div>
+
+    <!-- Small controls for demo -->
+    <div class="controls" aria-hidden="true">
+      <button id="prev" class="small">↑</button>
+      <button id="next" class="small">↓</button>
+    </div>
+
+  </main>
+
+  <div class="sr-only" id="a11y">Campo 1 de 6</div>
+
+  <script>
+    (function(){
+      const fields = Array.from(document.querySelectorAll('.field'));
+      const container = document.getElementById('fields');
+      const dotsWrap = document.getElementById('dots');
+      const a11y = document.getElementById('a11y');
+      let index = 0;
+      let animating = false;
+      let touchStartY = null;
+      let lastInteraction = 0;
+      const THROTTLE_MS = 300; // evita saltos múltiples
+
+      // Crear puntos de navegación
+      fields.forEach((f,i)=>{
+        const b = document.createElement('button');
+        b.className = 'dot' + (i===0? ' active':'');
+        b.setAttribute('aria-label', 'Ir al campo ' + (i+1));
+        b.addEventListener('click', ()=>goTo(i,true));
+        dotsWrap.appendChild(b);
+      });
+
+      function updateDots(){
+        Array.from(dotsWrap.children).forEach((d,i)=> d.classList.toggle('active', i===index));
+      }
+
+      function setA11y(){
+        a11y.textContent = `Estas en el campo ${index+1} de ${fields.length}`;
+      }
+
+      function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+      // Core: mover visualmente al campo "index" y enfocar su primer control
+      function renderJump(instant=false){
+        animating = true;
+        const y = - index * window.innerHeight;
+        if (instant) container.style.transition = 'none'; else container.style.transition = 'transform 420ms cubic-bezier(.2,.9,.2,1)';
+        container.style.transform = `translateY(${y}px)`;
+        window.setTimeout(()=>{
+          animating = false;
+          container.style.transition = '';
+        }, instant?60:450);
+
+        updateDots();
+        setA11y();
+
+        // Focus inteligente: busca el primer elemento interactivo del campo
+        const interactive = fields[index].querySelector('input,textarea,select,button');
+        if (interactive){
+          interactive.focus({preventScroll:true});
+        } else {
+          fields[index].focus();
+        }
+      }
+
+      // Navegación pública
+      function goTo(i, fromClick=false){
+        const now = Date.now();
+        if (now - lastInteraction < THROTTLE_MS && !fromClick) return;
+        lastInteraction = now;
+        index = clamp(i, 0, fields.length-1);
+        renderJump();
+      }
+
+      function next(){ goTo(index+1); }
+      function prev(){ goTo(index-1); }
+
+      // Wheel / trackpad: detectar dirección y saltar
+      window.addEventListener('wheel', (e)=>{
+        e.preventDefault();
+        const delta = e.deltaY;
+        if (Math.abs(delta) < 15) return; // ruido
+        if (delta > 0) next(); else prev();
+      }, {passive:false});
+
+      // Keyboard
+      window.addEventListener('keydown', (e)=>{
+        if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); next(); }
+        if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+        if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+        if (e.key === 'End') { e.preventDefault(); goTo(fields.length-1); }
+        // Enter en inputs -> siguiente
+        if (e.key === 'Enter'){
+          const tag = document.activeElement && document.activeElement.tagName;
+          if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || document.activeElement.classList.contains('small')){
+            // evita enviar formularios
+            e.preventDefault(); next();
+          }
+        }
+      });
+
+      // Touch swipe (simple)
+      window.addEventListener('touchstart',(e)=>{ touchStartY = e.touches[0].clientY; },{passive:true});
+      window.addEventListener('touchmove',(e)=>{ if(touchStartY===null) return; e.preventDefault(); },{passive:false});
+      window.addEventListener('touchend',(e)=>{
+        if(touchStartY===null) return; const dy = (e.changedTouches[0].clientY - touchStartY);
+        if (Math.abs(dy) > 40){ if (dy > 0) prev(); else next(); }
+        touchStartY = null;
+      },{passive:true});
+
+      // Prev/Next buttons
+      document.getElementById('prev').addEventListener('click', prev);
+      document.getElementById('next').addEventListener('click', next);
+
+      // Start button
+      document.getElementById('startBtn').addEventListener('click', ()=>goTo(1,true));
+
+      // Doble clique / doble toque: ir al siguiente
+      window.addEventListener('dblclick', ()=>next());
+
+      // Prevent conventional scroll keys that would move the page
+      window.addEventListener('keydown', (e)=>{
+        const forbidden = ['Space','PageDown','PageUp','ArrowDown','ArrowUp','Home','End'];
+        if (forbidden.includes(e.code)) e.preventDefault();
+      });
+
+      // Evitar el pulso de scroll por focus (cuando se hace focus desde la URL)
+      window.addEventListener('focusin', (e)=>{
+        // si el foco queda fuera del campo actual, encontrar su índice
+        const node = e.target.closest('.field');
+        if (!node) return;
+        const newIndex = Number(node.dataset.index);
+        if (!Number.isNaN(newIndex) && newIndex !== index) goTo(newIndex,true);
+      });
+
+      // Inicializar puntos y renderizar
+      renderJump(true);
+
+      // Envío de demo
+      document.getElementById('send').addEventListener('click', ()=>{
+        alert('Envío demo — aquí pondrías la lógica real de envío');
+      });
+
+      // Exponer en window para debug / control
+      window.jumpForm = { goTo, next, prev, fields };
+
+    })();
+  </script>
+</body>
+</html>
