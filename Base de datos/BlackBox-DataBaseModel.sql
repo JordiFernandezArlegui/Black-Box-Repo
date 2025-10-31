@@ -1,13 +1,12 @@
--- ===========================================
--- Base de Datos: BlackBox
--- Autor: Black Box company
--- ===========================================
+-- Crear la base de datos si no existe
+CREATE DATABASE IF NOT EXISTS BlackBoxDatabase 
+CHARACTER SET utf8mb4 
+COLLATE utf8mb4_unicode_ci;
 
-CREATE DATABASE IF NOT EXISTS BlackBox CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE routes_app;
+USE BlackBoxDatabase;
 
-
-CREATE TABLE User (
+-- Tabla de usuarios
+CREATE TABLE IF NOT EXISTS BBUser (
     id INT AUTO_INCREMENT PRIMARY KEY,
     password VARCHAR(255) NOT NULL,
     name VARCHAR(100) NOT NULL,
@@ -18,8 +17,8 @@ CREATE TABLE User (
     mail VARCHAR(255) UNIQUE NOT NULL
 );
 
-
-CREATE TABLE Vehicle (
+-- Tabla de vehículos
+CREATE TABLE IF NOT EXISTS Vehicle (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     favourite BOOLEAN DEFAULT FALSE,
@@ -34,13 +33,13 @@ CREATE TABLE Vehicle (
     description TEXT,
     type VARCHAR(50),
     user_id INT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES User(id)
+    FOREIGN KEY (user_id) REFERENCES BBUser(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
 
-
-CREATE TABLE Route (
+-- Tabla de rutas
+CREATE TABLE IF NOT EXISTS Route (
     id INT AUTO_INCREMENT PRIMARY KEY,
     csv TEXT, -- se asume que almacena contenido o path del archivo
     date DATE,
@@ -52,26 +51,25 @@ CREATE TABLE Route (
     FOREIGN KEY (vehicle_id) REFERENCES Vehicle(id)
         ON DELETE SET NULL
         ON UPDATE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES User(id)
+    FOREIGN KEY (user_id) REFERENCES BBUser(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
 
-
-CREATE TABLE Address (
+-- Tabla de direcciones
+CREATE TABLE IF NOT EXISTS Address (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     street VARCHAR(150),
     city VARCHAR(100),
     province VARCHAR(100),
     zip_code VARCHAR(20),
-    FOREIGN KEY (user_id) REFERENCES User(id)
+    FOREIGN KEY (user_id) REFERENCES BBUser(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
 
-
-CREATE INDEX idx_vehicle_user_id ON Vehicle(user_id);
-CREATE INDEX idx_route_user_id ON Route(user_id);
-CREATE INDEX idx_route_vehicle_id ON Route(vehicle_id);
-CREATE INDEX idx_address_user_id ON Address(user_id);
+CREATE INDEX IF NOT EXISTS idx_vehicle_user_id ON Vehicle(user_id);
+CREATE INDEX IF NOT EXISTS idx_route_user_id ON Route(user_id);
+CREATE INDEX IF NOT EXISTS idx_route_vehicle_id ON Route(vehicle_id);
+CREATE INDEX IF NOT EXISTS idx_address_user_id ON Address(user_id);
